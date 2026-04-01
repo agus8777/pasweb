@@ -69,16 +69,24 @@ else:
         st.link_button(f"Hubungi Kami (WA)", f"https://wa.me/{st.session_state['db']['wa_number']}")
     
     with col2:
-        # --- GANTI BAGIAN INI DENGAN KODE BARU ---
+        # --- LOGIKA DETEKSI OTOMATIS LINK GOOGLE DRIVE ---
         try:
-            # Menggunakan link thumbnail agar lebih stabil dari Google Drive
             url_foto = st.session_state['db']['img_url']
-            if "drive.google.com" in url_foto and "id=" in url_foto:
-                file_id = url_foto.split("id=")[1].split("&")[0]
-                url_foto = f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000"
+            
+            # Cek apakah ini link Google Drive standar
+            if "drive.google.com" in url_foto:
+                if "/file/d/" in url_foto:
+                    # Mengambil ID di antara /d/ dan /view
+                    file_id = url_foto.split("/file/d/")[1].split("/")[0]
+                    url_foto = f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000"
+                elif "id=" in url_foto:
+                    # Mengambil ID jika menggunakan format ?id=
+                    file_id = url_foto.split("id=")[1].split("&")[0]
+                    url_foto = f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000"
             
             st.image(url_foto, use_container_width=True)
-        except Exception:
+            
+        except Exception as e:
             st.warning("Gagal memuat gambar.")
             st.image("https://via.placeholder.com/800x600?text=Cek+Link+Foto+Anda")
         # ------------------------------------------
