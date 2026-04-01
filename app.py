@@ -1,59 +1,77 @@
 import streamlit as st
 
-# Pengaturan Dasar Halaman
-st.set_page_config(page_title="Team Insurance Landing Page", layout="wide")
-
-# Database Sederhana (Dalam memori, untuk contoh)
-if 'content' not in st.session_state:
-    st.session_state['content'] = {
-        'title': "Perlindungan Masa Depan Keluarga Anda",
-        'sub_title': "Kami membantu Anda merencanakan masa depan yang lebih tenang.",
-        'description': "Tim agen profesional kami siap membantu kebutuhan asuransi Anda.",
+# 1. Inisialisasi Data (Database Sederhana)
+if 'db' not in st.session_state:
+    st.session_state['db'] = {
+        'password': "admin123",
+        'secret_key': "PAS-2026", # Gunakan ini jika lupa password
+        'title': "Pru Agus Sophie (PAS) Team",
+        'sub_title': "Perencanaan Keuangan Masa Depan yang Cerdas & Aman",
+        'wa_number': "628123456789",
+        'img_url': "https://images.unsplash.com/photo-1450101499163-c8848c66ca85", # Foto Default
     }
 
-# --- SIDEBAR: LOGIN ADMIN ---
-st.sidebar.title("Admin Panel")
-password = st.sidebar.text_input("Masukkan Password Admin", type="password")
+st.set_page_config(page_title=st.session_state['db']['title'], layout="wide")
 
-# Cek Password (Ganti 'rahasia123' dengan password pilihan Anda)
-is_admin = (password == "rahasia123")
+# --- FUNGSI RESET PASSWORD ---
+def reset_password_ui():
+    st.divider()
+    st.subheader("Reset Password")
+    sk_input = st.text_input("Masukkan Kunci Rahasia Anda", type="password")
+    new_pw = st.text_input("Masukkan Password Baru")
+    
+    if st.button("Update Password"):
+        if sk_input == st.session_state['db']['secret_key']:
+            st.session_state['db']['password'] = new_pw
+            st.success("Password berhasil diganti! Silakan login di sidebar.")
+        else:
+            st.error("Kunci Rahasia salah.")
 
-if is_admin:
+# --- SIDEBAR: LOGIN & ADMIN ---
+st.sidebar.title("🔐 Admin Panel")
+input_pw = st.sidebar.text_input("Password", type="password")
+
+if input_pw == st.session_state['db']['password']:
     st.sidebar.success("Mode Edit Aktif")
-    st.sidebar.markdown("---")
     
-    # Form Edit Konten
-    new_title = st.sidebar.text_input("Edit Judul Utama", st.session_state['content']['title'])
-    new_sub = st.sidebar.text_area("Edit Sub-judul", st.session_state['content']['sub_title'])
-    new_desc = st.sidebar.text_area("Edit Deskripsi", st.session_state['content']['description'])
-    
-    if st.sidebar.button("Simpan Perubahan"):
-        st.session_state['content']['title'] = new_title
-        st.session_state['content']['sub_title'] = new_sub
-        st.session_state['content']['description'] = new_desc
+    with st.sidebar.expander("Ganti Konten Website"):
+        new_title = st.text_input("Judul Website", st.session_state['db']['title'])
+        new_sub = st.text_area("Sub-Judul", st.session_state['db']['sub_title'])
+        new_wa = st.text_input("Nomor WhatsApp (Gunakan 62...)", st.session_state['db']['wa_number'])
+        new_img = st.text_input("URL Foto (Google Drive/Lainnya)", st.session_state['db']['img_url'])
+        
+        if st.button("Simpan Perubahan"):
+            st.session_state['db'].update({
+                'title': new_title, 'sub_title': new_sub, 
+                'wa_number': new_wa, 'img_url': new_img
+            })
+            st.rerun()
+            
+else:
+    if input_pw:
+        st.sidebar.error("Password Salah")
+    if st.sidebar.button("Lupa Password?"):
+        st.session_state['show_reset'] = True
+
+# --- TAMPILAN UTAMA ---
+if st.session_state.get('show_reset'):
+    reset_password_ui()
+    if st.button("Kembali ke Beranda"):
+        del st.session_state['show_reset']
         st.rerun()
 else:
-    if password:
-        st.sidebar.error("Password Salah")
+    # Header Section
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.title(st.session_state['db']['title'])
+        st.write(st.session_state['db']['sub_title'])
+        st.link_button(f"Hubungi Kami (WA)", f"https://wa.me/{st.session_state['db']['wa_number']}")
+    
+    with col2:
+        # Menampilkan foto dari URL yang diinput
+        st.image(st.session_state['db']['img_url'], use_container_width=True)
 
-# --- HALAMAN UTAMA (LANDING PAGE) ---
-st.title(st.session_state['content']['title'])
-st.subheader(st.session_state['content']['sub_title'])
-st.write(st.session_state['content']['description'])
-
-st.divider()
-
-# Bagian Tim
-col1, col2 = st.columns(2)
-with col1:
-    st.image("https://via.placeholder.com/400x300", caption="Foto Tim Anda")
-with col2:
-    st.markdown("""
-    ### Mengapa Memilih Tim Kami?
-    * Pengalaman terpercaya bertahun-tahun.
-    * Klaim yang dibantu hingga tuntas.
-    * Konsultasi gratis untuk perencanaan warisan dan kesehatan.
-    """)
-
-# Tombol Kontak
-st.link_button("Hubungi Kami via WhatsApp", "https://wa.me/628123456789")
+    st.divider()
+    st.markdown("### Mengapa Bergabung dengan Tim PAS?")
+    st.write("Kami berdedikasi untuk memberikan literasi keuangan terbaik bagi masyarakat.")
