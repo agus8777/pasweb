@@ -69,9 +69,19 @@ else:
         st.link_button(f"Hubungi Kami (WA)", f"https://wa.me/{st.session_state['db']['wa_number']}")
     
     with col2:
-        # Menampilkan foto dari URL yang diinput
-        st.image(st.session_state['db']['img_url'], use_container_width=True)
-
+        # --- GANTI BAGIAN INI DENGAN KODE BARU ---
+        try:
+            # Menggunakan link thumbnail agar lebih stabil dari Google Drive
+            url_foto = st.session_state['db']['img_url']
+            if "drive.google.com" in url_foto and "id=" in url_foto:
+                file_id = url_foto.split("id=")[1].split("&")[0]
+                url_foto = f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000"
+            
+            st.image(url_foto, use_container_width=True)
+        except Exception:
+            st.warning("Gagal memuat gambar.")
+            st.image("https://via.placeholder.com/800x600?text=Cek+Link+Foto+Anda")
+        # ------------------------------------------
     st.divider()
     st.markdown("### Mengapa Bergabung dengan Tim PAS?")
     st.write("Kami berdedikasi untuk memberikan literasi keuangan terbaik bagi masyarakat.")
